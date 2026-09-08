@@ -1,0 +1,5 @@
+# SQLite Database Files
+*.db
+*.sqlite
+*.sqlite3
+polymer_data.db
