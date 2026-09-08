@@ -3,3 +3,18 @@
 *.sqlite
 *.sqlite3
 polymer_data.db
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Test exports and artifacts
+test_*.png
+test_*.csv
+test_*.sdf
+generated_*.csv
+generated_*.sdf
+polymer_history.*
+polymer_database_history.*
