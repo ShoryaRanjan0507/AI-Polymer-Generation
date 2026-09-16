@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Any
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, 
-    QHBoxLayout, QTabWidget, QLabel, QLineEdit, 
+    QHBoxLayout, QGridLayout, QTabWidget, QLabel, QLineEdit, 
     QPushButton, QTextEdit, QProgressBar, QFrame, 
     QTableWidget, QTableWidgetItem, QHeaderView, QSlider,
     QMessageBox, QGroupBox, QFileDialog, QComboBox, QSplitter
@@ -174,7 +174,6 @@ class PolymerAppHomepage(QMainWindow):
 
         self.smiles_input = QLineEdit()
         self.smiles_input.setPlaceholderText("e.g., CC(=C)C(=O)Oc1ccccc1 (Phenyl methacrylate)")
-        self.smiles_input.setText("CC(=C)C(=O)Oc1ccccc1")
         layout.addWidget(self.smiles_input)
 
         # Quick Examples Buttons
@@ -393,30 +392,32 @@ class PolymerAppHomepage(QMainWindow):
 
         self.image_viewport = QLabel("No Structure Active\n(Run Forward or Inverse Pipeline)")
         self.image_viewport.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_viewport.setMinimumHeight(240)
+        self.image_viewport.setFixedHeight(200)
+        self.image_viewport.setScaledContents(False)
         viewport_layout.addWidget(self.image_viewport)
 
         panel.addWidget(self.viewport_group)
 
         # Property Dashboard Cards
         self.dashboard_group = QGroupBox("Predicted Metrics && Laboratory Feasibility")
-        dash_layout = QVBoxLayout(self.dashboard_group)
-        dash_layout.setSpacing(8)
+        dash_layout = QGridLayout(self.dashboard_group)
+        dash_layout.setSpacing(6)
 
         self.lbl_sa_score = QLabel()
-        dash_layout.addWidget(self.lbl_sa_score)
-
         self.lbl_tg = QLabel()
-        dash_layout.addWidget(self.lbl_tg)
-
         self.lbl_density = QLabel()
-        dash_layout.addWidget(self.lbl_density)
-
         self.lbl_tensile = QLabel()
-        dash_layout.addWidget(self.lbl_tensile)
-
         self.lbl_modulus = QLabel()
-        dash_layout.addWidget(self.lbl_modulus)
+
+        # Grid placement matching the user layout sketch:
+        # Row 0: Glass Transition Temp (Tg) | Polymer Density
+        # Row 1: Tensile Strength | Elastic Modulus
+        # Row 2: SA Score (full span)
+        dash_layout.addWidget(self.lbl_tg, 0, 0)
+        dash_layout.addWidget(self.lbl_density, 0, 1)
+        dash_layout.addWidget(self.lbl_tensile, 1, 0)
+        dash_layout.addWidget(self.lbl_modulus, 1, 1)
+        dash_layout.addWidget(self.lbl_sa_score, 2, 0, 1, 2)
 
         panel.addWidget(self.dashboard_group)
 
@@ -584,7 +585,8 @@ class PolymerAppHomepage(QMainWindow):
         if image_bytes:
             pixmap = QPixmap()
             pixmap.loadFromData(image_bytes)
-            self.image_viewport.setPixmap(pixmap.scaled(self.image_viewport.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            target_size = QSize(max(self.image_viewport.width(), 300), 200)
+            self.image_viewport.setPixmap(pixmap.scaled(target_size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             self.image_viewport.setStyleSheet(f"border: 2px solid #0284c7; background: {bg_color}; border-radius: 6px;")
         else:
             self.image_viewport.setText(f"Canonical SMILES:\n{result.get('canonical_smiles')}")
