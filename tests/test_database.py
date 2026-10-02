@@ -19,6 +19,12 @@ def test_database_initialization_and_crud():
     assert history[0]["canonical_smiles"] == "CCO"
     assert "Glass Transition Temp" in history[0]["predictions"]
 
+    # Test deletion and cascading redundancy handling
+    deleted = db.delete_molecule(mol_id)
+    assert deleted is True
+    history_after = db.fetch_history(limit=10)
+    assert len(history_after) == 0
+
 def run_tests():
     print("Executing SQLite In-Memory Database Tests...")
     test_database_initialization_and_crud()

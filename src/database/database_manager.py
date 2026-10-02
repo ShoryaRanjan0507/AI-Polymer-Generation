@@ -45,30 +45,22 @@ class DatabaseManager:
 
     def insert_molecule(self, smiles_string: str, canonical_smiles: str, sa_score: Optional[float] = None) -> int:
         """
-        Inserts a molecule into the DB. If canonical_smiles exists, returns existing molecule_id.
-        """
-        query = """
-        INSERT INTO Molecules (smiles_string, canonical_smiles, sa_score)
-        VALUES (?, ?, ?)
-        ON CONFLICT(canonical_smiles) DO UPDATE SET
-            smiles_string = excluded.smiles_string
-        RETURNING molecule_id;
+        Inserts a molecule into the DB. If canonical_smiles exists, returns existing molecule_id
+        without triggering SQLite AUTOINCREMENT sequence increments.
         """
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            try:
-                cursor.execute(query, (smiles_string, canonical_smiles, sa_score))
-                row = cursor.fetchone()
-                conn.commit()
-                if row:
-                    return row["molecule_id"]
-            except sqlite3.Error:
-                # Handle SQLite fallback for ON CONFLICT DO UPDATE RETURNING
-                cursor.execute("SELECT molecule_id FROM Molecules WHERE canonical_smiles = ?", (canonical_smiles,))
-                existing = cursor.fetchone()
-                if existing:
-                    return existing["molecule_id"]
-                raise
+            cursor.execute("SELECT molecule_id FROM Molecules WHERE canonical_smiles = ?", (canonical_smiles,))
+            existing = cursor.fetchone()
+            if existing:
+                return existing["molecule_id"]
+
+            cursor.execute(
+                "INSERT INTO Molecules (smiles_string, canonical_smiles, sa_score) VALUES (?, ?, ?)",
+                (smiles_string, canonical_smiles, sa_score)
+            )
+            conn.commit()
+            return cursor.lastrowid
         return -1
 
     def insert_prediction(self, molecule_id: int, property_name: str, predicted_value: float, unit: str, model_version: str = "v1.0-oracle") -> int:
@@ -120,3 +112,18 @@ class DatabaseManager:
             cursor.execute(query, (limit,))
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
+
+    def delete_molecule(self, molecule_id: int) -> bool:
+        """
+        Deletes a molecule by ID. Cascades deletion to child property predictions 
+        and updates connected logs cleanly.
+        """
+        query_preds = "DELETE FROM PropertyPredictions WHERE molecule_id = ?;"
+        query_mol = "DELETE FROM Molecules WHERE molecule_id = ?;"
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA foreign_keys = ON;")
+            cursor.execute(query_preds, (molecule_id,))
+            cursor.execute(query_mol, (molecule_id,))
+            conn.commit()
+            return cursor.rowcount > 0

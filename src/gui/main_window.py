@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QMessageBox, QGroupBox, QFileDialog, QComboBox, QSplitter
 )
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QPixmap, QColor, QIcon, QImage
+from PyQt6.QtGui import QFont, QFontDatabase, QPixmap, QColor, QIcon, QImage
 
 # Add root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -42,6 +42,8 @@ class PolymerAppHomepage(QMainWindow):
         self.assets_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../assets"))
         self.sun_icon_path = os.path.join(self.assets_dir, "sun.svg")
         self.moon_icon_path = os.path.join(self.assets_dir, "moon.svg")
+        self.bin_light_icon_path = os.path.join(self.assets_dir, "bin_light.svg")
+        self.bin_dark_icon_path = os.path.join(self.assets_dir, "bin_dark.svg")
 
         self._init_ui()
         self.apply_theme()
@@ -49,37 +51,73 @@ class PolymerAppHomepage(QMainWindow):
 
     def get_dark_stylesheet(self) -> str:
         return """
-            QMainWindow { background-color: #0f172a; }
-            QWidget { font-family: 'Segoe UI', sans-serif; color: #f8fafc; font-size: 13px; }
-            QTabWidget::pane { border: 1px solid #334155; background: #1e293b; border-radius: 8px; }
-            QTabBar::tab { background: #0f172a; color: #94a3b8; padding: 10px 18px; border: 1px solid #334155; border-bottom: none; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; }
-            QTabBar::tab:selected { background: #1e293b; color: #38bdf8; border-top: 2px solid #38bdf8; }
-            QGroupBox { border: 1px solid #334155; border-radius: 8px; margin-top: 14px; font-weight: bold; color: #cbd5e1; padding-top: 12px; }
-            QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #38bdf8; font-size: 13px; }
-            QLineEdit, QComboBox { background-color: #0b1120; border: 1px solid #475569; color: #f8fafc; padding: 8px 10px; border-radius: 6px; font-size: 13px; }
-            QLineEdit:focus, QComboBox:focus { border: 1px solid #38bdf8; }
+            QMainWindow { background-color: #0b0f19; }
+            QWidget { font-family: 'Segoe UI', sans-serif; color: #f1f5f9; font-size: 10pt; }
+            
+            QTabWidget::pane { border: 1px solid #1e293b; background: #0f172a; border-radius: 8px; }
+            QTabBar::tab { background: #090d16; color: #64748b; padding: 10px 20px; border: 1px solid #1e293b; border-bottom: none; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; }
+            QTabBar::tab:hover { color: #cbd5e1; background: #0f172a; }
+            QTabBar::tab:selected { background: #0f172a; color: #38bdf8; border-top: 2px solid #38bdf8; font-weight: bold; }
+            
+            QGroupBox { border: 1px solid #1e293b; border-radius: 8px; margin-top: 10px; font-weight: bold; color: #cbd5e1; padding-top: 14px; background-color: #0f172a; }
+            QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 10px; padding: 0 4px; color: #38bdf8; font-size: 10pt; font-weight: bold; background-color: transparent; }
+            
+            QLineEdit, QComboBox { background-color: #020617; border: 1px solid #1e293b; color: #f8fafc; padding: 8px 12px; border-radius: 6px; font-size: 10pt; selection-background-color: #0284c7; }
+            QLineEdit:hover, QComboBox:hover { border-color: #334155; }
+            QLineEdit:focus, QComboBox:focus { border: 1px solid #38bdf8; background-color: #090d16; }
+            QComboBox QAbstractItemView { background-color: #0f172a; color: #f8fafc; font-size: 10pt; selection-background-color: #0284c7; border: 1px solid #1e293b; border-radius: 6px; padding: 4px; outline: 0px; }
+            QComboBox::item { font-size: 10pt; min-height: 24px; }
+            
             QLabel { color: #e2e8f0; }
-            QMessageBox { background-color: #1e293b; color: #f8fafc; }
+            
+            QTableWidget { background-color: #020617; color: #f8fafc; gridline-color: #1e293b; border: 1px solid #1e293b; border-radius: 6px; selection-background-color: #1e293b; selection-color: #38bdf8; }
+            QHeaderView::section { background-color: #0f172a; color: #38bdf8; font-weight: bold; border: none; border-bottom: 1px solid #1e293b; border-right: 1px solid #1e293b; padding: 8px; }
+            QHeaderView::section:last { border-right: none; }
+            
+            QSlider::groove:horizontal { height: 6px; background: #1e293b; border-radius: 3px; }
+            QSlider::sub-page:horizontal { background: #0284c7; border-radius: 3px; }
+            QSlider::handle:horizontal { background: #38bdf8; width: 16px; margin-top: -5px; margin-bottom: -5px; border-radius: 8px; }
+            QSlider::handle:horizontal:hover { background: #7dd3fc; }
+            
+            QMessageBox { background-color: #0f172a; color: #f8fafc; }
             QMessageBox QLabel { color: #f8fafc; }
-            QMessageBox QPushButton { background-color: #0284c7; color: #ffffff; border-radius: 4px; padding: 6px 16px; font-weight: bold; min-width: 60px; }
+            QMessageBox QPushButton { background-color: #0284c7; color: #ffffff; border-radius: 6px; padding: 6px 18px; font-weight: bold; min-width: 65px; border: none; }
             QMessageBox QPushButton:hover { background-color: #0369a1; }
         """
 
     def get_light_stylesheet(self) -> str:
         return """
-            QMainWindow { background-color: #f1f5f9; }
-            QWidget { font-family: 'Segoe UI', sans-serif; color: #0f172a; font-size: 13px; }
-            QTabWidget::pane { border: 1px solid #cbd5e1; background: #ffffff; border-radius: 8px; }
-            QTabBar::tab { background: #e2e8f0; color: #475569; padding: 10px 18px; border: 1px solid #cbd5e1; border-bottom: none; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; }
-            QTabBar::tab:selected { background: #ffffff; color: #0284c7; border-top: 2px solid #0284c7; }
-            QGroupBox { border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 14px; font-weight: bold; color: #334155; padding-top: 12px; }
-            QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #0284c7; font-size: 13px; }
-            QLineEdit, QComboBox { background-color: #f8fafc; border: 1px solid #94a3b8; color: #0f172a; padding: 8px 10px; border-radius: 6px; font-size: 13px; }
+            QMainWindow { background-color: #f8fafc; }
+            QWidget { font-family: 'Segoe UI', sans-serif; color: #0f172a; font-size: 10pt; }
+            
+            QTabWidget::pane { border: 1px solid #e2e8f0; background: #ffffff; border-radius: 8px; }
+            QTabBar::tab { background: #f1f5f9; color: #64748b; padding: 10px 20px; border: 1px solid #e2e8f0; border-bottom: none; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; }
+            QTabBar::tab:hover { color: #1e293b; background: #f8fafc; }
+            QTabBar::tab:selected { background: #ffffff; color: #0284c7; border-top: 2px solid #0284c7; font-weight: bold; }
+            
+            QGroupBox { border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 10px; font-weight: bold; color: #334155; padding-top: 14px; background-color: #ffffff; }
+            QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 10px; padding: 0 4px; color: #0284c7; font-size: 10pt; font-weight: bold; background-color: transparent; }
+            
+            QLineEdit, QComboBox { background-color: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 8px 12px; border-radius: 6px; font-size: 10pt; selection-background-color: #0284c7; }
+            QLineEdit:hover, QComboBox:hover { border-color: #94a3b8; }
             QLineEdit:focus, QComboBox:focus { border: 1px solid #0284c7; }
+            QComboBox QAbstractItemView { background-color: #ffffff; color: #0f172a; font-size: 10pt; selection-background-color: #0284c7; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px; outline: 0px; }
+            QComboBox::item { font-size: 10pt; min-height: 24px; }
+            
             QLabel { color: #1e293b; }
+            
+            QTableWidget { background-color: #ffffff; color: #0f172a; gridline-color: #e2e8f0; border: 1px solid #e2e8f0; border-radius: 6px; selection-background-color: #f1f5f9; selection-color: #0284c7; }
+            QHeaderView::section { background-color: #f8fafc; color: #0284c7; font-weight: 600; border: none; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding: 8px; }
+            QHeaderView::section:last { border-right: none; }
+            
+            QSlider::groove:horizontal { height: 6px; background: #e2e8f0; border-radius: 3px; }
+            QSlider::sub-page:horizontal { background: #0284c7; border-radius: 3px; }
+            QSlider::handle:horizontal { background: #0284c7; width: 16px; margin-top: -5px; margin-bottom: -5px; border-radius: 8px; }
+            QSlider::handle:horizontal:hover { background: #0369a1; }
+            
             QMessageBox { background-color: #ffffff; color: #0f172a; }
             QMessageBox QLabel { color: #0f172a; }
-            QMessageBox QPushButton { background-color: #0284c7; color: #ffffff; border-radius: 4px; padding: 6px 16px; font-weight: bold; min-width: 60px; }
+            QMessageBox QPushButton { background-color: #0284c7; color: #ffffff; border-radius: 6px; padding: 6px 18px; font-weight: 600; min-width: 65px; border: none; }
             QMessageBox QPushButton:hover { background-color: #0369a1; }
         """
 
@@ -95,8 +133,19 @@ class PolymerAppHomepage(QMainWindow):
         header_layout = QHBoxLayout(self.header_frame)
         header_layout.setContentsMargins(14, 10, 14, 10)
 
-        self.title_label = QLabel("AI Polymer Generation & Property Prediction Platform")
-        self.title_label.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+        # Load custom Engravers MT font for header logo
+        fonts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../fonts"))
+        engr_font_path = os.path.join(fonts_dir, "ENGR.TTF")
+        engr_font_family = "Segoe UI"
+        if os.path.exists(engr_font_path):
+            font_id = QFontDatabase.addApplicationFont(engr_font_path)
+            if font_id != -1:
+                loaded_families = QFontDatabase.applicationFontFamilies(font_id)
+                if loaded_families:
+                    engr_font_family = loaded_families[0]
+
+        self.title_label = QLabel("AI Polymer Generation")
+        self.title_label.setFont(QFont(engr_font_family, 24, QFont.Weight.Bold))
         header_layout.addWidget(self.title_label)
 
         header_layout.addStretch()
@@ -123,7 +172,7 @@ class PolymerAppHomepage(QMainWindow):
 
         self.tabs.addTab(self.tab_forward, "Forward Prediction")
         self.tabs.addTab(self.tab_inverse, "Inverse AI Design")
-        self.tabs.addTab(self.tab_history, "Database & History")
+        self.tabs.addTab(self.tab_history, "Database and History")
 
         self._setup_forward_tab()
         self._setup_inverse_tab()
@@ -210,8 +259,8 @@ class PolymerAppHomepage(QMainWindow):
 
     def _setup_inverse_tab(self):
         layout = QVBoxLayout(self.tab_inverse)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(10)
+        layout.setContentsMargins(10, 8, 10, 8)
+        layout.setSpacing(6)
 
         self.info_box_inverse = QLabel(
             "Specify target thermomechanical constraints. The generative model will synthesize "
@@ -223,13 +272,14 @@ class PolymerAppHomepage(QMainWindow):
         # Target Parameters Box
         self.group_box_params = QGroupBox("Target Physical Constraints")
         param_layout = QVBoxLayout(self.group_box_params)
-        param_layout.setSpacing(10)
+        param_layout.setContentsMargins(10, 6, 10, 6)
+        param_layout.setSpacing(4)
 
         # 1. Target Tg
         tg_header = QHBoxLayout()
         tg_header.addWidget(QLabel("Target Glass Transition Temp (Tg, °C):"))
         self.lbl_target_tg = QLabel("180.0 °C")
-        self.lbl_target_tg.setStyleSheet("background-color: #0284c7; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-weight: bold;")
+        self.lbl_target_tg.setStyleSheet("background-color: #0284c7; color: #ffffff; padding: 1px 6px; border-radius: 4px; font-weight: bold;")
         tg_header.addStretch()
         tg_header.addWidget(self.lbl_target_tg)
         param_layout.addLayout(tg_header)
@@ -244,7 +294,7 @@ class PolymerAppHomepage(QMainWindow):
         tensile_header = QHBoxLayout()
         tensile_header.addWidget(QLabel("Target Tensile Strength (MPa):"))
         self.lbl_target_tensile = QLabel("75.0 MPa")
-        self.lbl_target_tensile.setStyleSheet("background-color: #0284c7; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-weight: bold;")
+        self.lbl_target_tensile.setStyleSheet("background-color: #0284c7; color: #ffffff; padding: 1px 6px; border-radius: 4px; font-weight: bold;")
         tensile_header.addStretch()
         tensile_header.addWidget(self.lbl_target_tensile)
         param_layout.addLayout(tensile_header)
@@ -259,7 +309,7 @@ class PolymerAppHomepage(QMainWindow):
         mod_header = QHBoxLayout()
         mod_header.addWidget(QLabel("Target Elastic Modulus (GPa):"))
         self.lbl_target_modulus = QLabel("3.0 GPa")
-        self.lbl_target_modulus.setStyleSheet("background-color: #0284c7; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-weight: bold;")
+        self.lbl_target_modulus.setStyleSheet("background-color: #0284c7; color: #ffffff; padding: 1px 6px; border-radius: 4px; font-weight: bold;")
         mod_header.addStretch()
         mod_header.addWidget(self.lbl_target_modulus)
         param_layout.addLayout(mod_header)
@@ -277,7 +327,7 @@ class PolymerAppHomepage(QMainWindow):
         self.sa_slider.setRange(1, 10)
         self.sa_slider.setValue(4)
         self.lbl_sa_val = QLabel("4.0 (Moderate)")
-        self.lbl_sa_val.setStyleSheet("background-color: #0284c7; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-weight: bold;")
+        self.lbl_sa_val.setStyleSheet("background-color: #0284c7; color: #ffffff; padding: 1px 6px; border-radius: 4px; font-weight: bold;")
         self.sa_slider.valueChanged.connect(self.update_sa_slider_label)
         control_row.addWidget(self.sa_slider)
         control_row.addWidget(self.lbl_sa_val)
@@ -285,6 +335,10 @@ class PolymerAppHomepage(QMainWindow):
         control_row.addSpacing(16)
         control_row.addWidget(QLabel("Batch Size:"))
         self.combo_batch_size = QComboBox()
+        combo_font = QFont("Segoe UI", 10)
+        self.combo_batch_size.setFont(combo_font)
+        if self.combo_batch_size.view():
+            self.combo_batch_size.view().setFont(combo_font)
         self.combo_batch_size.addItems(["5", "10", "20", "50"])
         self.combo_batch_size.setCurrentText("10")
         control_row.addWidget(self.combo_batch_size)
@@ -300,7 +354,7 @@ class PolymerAppHomepage(QMainWindow):
 
         # Batch Results Table
         self.lbl_batch_header = QLabel("Generated Candidates Pool (Click row to inspect 2D structure):")
-        self.lbl_batch_header.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        self.lbl_batch_header.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
         layout.addWidget(self.lbl_batch_header)
 
         self.batch_table = QTableWidget()
@@ -313,7 +367,7 @@ class PolymerAppHomepage(QMainWindow):
         self.batch_table.setColumnWidth(2, 75)
         self.batch_table.setColumnWidth(3, 85)
         self.batch_table.cellClicked.connect(self.on_batch_row_selected)
-        layout.addWidget(self.batch_table)
+        layout.addWidget(self.batch_table, stretch=1)
 
         # Batch Actions (Export CSV / SDF)
         batch_actions = QHBoxLayout()
@@ -349,14 +403,15 @@ class PolymerAppHomepage(QMainWindow):
 
         # History Table
         self.history_table = QTableWidget()
-        self.history_table.setColumnCount(4)
-        self.history_table.setHorizontalHeaderLabels(["ID", "Canonical SMILES", "SA Score", "Predicted Properties"])
+        self.history_table.setColumnCount(5)
+        self.history_table.setHorizontalHeaderLabels(["ID", "Canonical SMILES", "SA Score", "Predicted Properties", "Action"])
         header = self.history_table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
-        header.setStretchLastSection(True)
-        self.history_table.setColumnWidth(0, 50)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        self.history_table.setColumnWidth(0, 55)
         self.history_table.setColumnWidth(1, 200)
         self.history_table.setColumnWidth(2, 85)
+        self.history_table.setColumnWidth(4, 60)
         self.history_table.setSortingEnabled(True)
         self.history_table.setWordWrap(True)
         self.history_table.cellClicked.connect(self.on_history_row_selected)
@@ -389,10 +444,11 @@ class PolymerAppHomepage(QMainWindow):
         # 2D Structure Viewport
         self.viewport_group = QGroupBox("2D Skeletal Molecular Structure")
         viewport_layout = QVBoxLayout(self.viewport_group)
+        viewport_layout.setContentsMargins(6, 4, 6, 4)
 
         self.image_viewport = QLabel("No Structure Active\n(Run Forward or Inverse Pipeline)")
         self.image_viewport.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_viewport.setFixedHeight(200)
+        self.image_viewport.setFixedHeight(180)
         self.image_viewport.setScaledContents(False)
         viewport_layout.addWidget(self.image_viewport)
 
@@ -432,6 +488,7 @@ class PolymerAppHomepage(QMainWindow):
     def toggle_theme(self):
         self.is_dark_mode = not self.is_dark_mode
         self.apply_theme()
+        self.refresh_history_table()
         if self.current_result:
             # Re-render 2D structure bytes with the new theme palette
             smiles = self.current_result.get("canonical_smiles") or self.current_result.get("raw_smiles")
@@ -446,7 +503,7 @@ class PolymerAppHomepage(QMainWindow):
         if self.is_dark_mode:
             self.setStyleSheet(self.get_dark_stylesheet())
             self.header_frame.setStyleSheet("background-color: #0b1120; border: 1px solid #334155; border-radius: 8px;")
-            self.title_label.setStyleSheet("color: #f8fafc;")
+            self.title_label.setStyleSheet("font-family: 'Engravers MT', serif; font-size: 24px; font-weight: bold; color: #f8fafc; border: none; background: transparent;")
             self.btn_theme_toggle.setIcon(QIcon(self.sun_icon_path))
             self.btn_theme_toggle.setStyleSheet("""
                 QPushButton { background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; }
@@ -481,11 +538,11 @@ class PolymerAppHomepage(QMainWindow):
                 QHeaderView::section { background-color: #1e293b; color: #38bdf8; font-weight: bold; border: 1px solid #334155; padding: 6px; }
             """)
             if not self.current_result:
-                self.image_viewport.setStyleSheet("border: 2px dashed #475569; background: #0b1120; min-height: 240px; font-weight: bold; color: #94a3b8; border-radius: 6px;")
+                self.image_viewport.setStyleSheet("border: 2px dashed #475569; background: #0b1120; font-weight: bold; color: #94a3b8; border-radius: 6px;")
         else:
             self.setStyleSheet(self.get_light_stylesheet())
             self.header_frame.setStyleSheet("background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;")
-            self.title_label.setStyleSheet("color: #0f172a;")
+            self.title_label.setStyleSheet("font-family: 'Engravers MT', serif; font-size: 24px; font-weight: bold; color: #0f172a; border: none; background: transparent;")
             self.btn_theme_toggle.setIcon(QIcon(self.moon_icon_path))
             self.btn_theme_toggle.setStyleSheet("""
                 QPushButton { background-color: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 8px; }
@@ -520,7 +577,7 @@ class PolymerAppHomepage(QMainWindow):
                 QHeaderView::section { background-color: #e2e8f0; color: #0284c7; font-weight: bold; border: 1px solid #cbd5e1; padding: 6px; }
             """)
             if not self.current_result:
-                self.image_viewport.setStyleSheet("border: 2px dashed #94a3b8; background: #ffffff; min-height: 240px; font-weight: bold; color: #64748b; border-radius: 6px;")
+                self.image_viewport.setStyleSheet("border: 2px dashed #94a3b8; background: #ffffff; font-weight: bold; color: #64748b; border-radius: 6px;")
 
         if not self.current_result:
             self.update_empty_dashboard()
@@ -585,7 +642,7 @@ class PolymerAppHomepage(QMainWindow):
         if image_bytes:
             pixmap = QPixmap()
             pixmap.loadFromData(image_bytes)
-            target_size = QSize(max(self.image_viewport.width(), 300), 200)
+            target_size = QSize(max(self.image_viewport.width(), 300), 180)
             self.image_viewport.setPixmap(pixmap.scaled(target_size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             self.image_viewport.setStyleSheet(f"border: 2px solid #0284c7; background: {bg_color}; border-radius: 6px;")
         else:
@@ -749,8 +806,49 @@ class PolymerAppHomepage(QMainWindow):
             self.history_table.setItem(row_idx, 2, sa_item)
             self.history_table.setItem(row_idx, 3, preds_item)
 
+            # Column 4: Delete button
+            btn_delete = QPushButton()
+            bin_icon = self.bin_light_icon_path if self.is_dark_mode else self.bin_dark_icon_path
+            btn_delete.setIcon(QIcon(bin_icon))
+            btn_delete.setIconSize(QSize(16, 16))
+            btn_delete.setFixedSize(28, 28)
+            btn_delete.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_delete.setToolTip(f"Delete Molecule #{r['molecule_id']} from Database")
+            btn_delete.setStyleSheet("""
+                QPushButton { background: transparent; border: none; border-radius: 4px; padding: 2px; }
+                QPushButton:hover { background-color: #ef4444; }
+            """)
+            mol_id = int(r["molecule_id"])
+            btn_delete.clicked.connect(lambda _, m_id=mol_id: self.delete_history_record(m_id))
+
+            cell_widget = QWidget()
+            cell_layout = QHBoxLayout(cell_widget)
+            cell_layout.setContentsMargins(0, 0, 0, 0)
+            cell_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            cell_layout.addWidget(btn_delete)
+            self.history_table.setCellWidget(row_idx, 4, cell_widget)
+
         self.history_table.setSortingEnabled(True)
         self.history_table.resizeRowsToContents()
+
+    def delete_history_record(self, molecule_id: int):
+        reply = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            f"Are you sure you want to delete Molecule Record #{molecule_id} and all associated property predictions?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                success = self.db.delete_molecule(molecule_id)
+                if success:
+                    self.status_log.setText(f"Success: Deleted Molecule Record #{molecule_id} from SQLite Database.")
+                    self.refresh_history_table()
+                else:
+                    QMessageBox.warning(self, "Deletion Failed", f"Molecule Record #{molecule_id} was not found.")
+            except Exception as e:
+                QMessageBox.critical(self, "Database Error", f"Failed to delete record: {str(e)}")
 
     def filter_history_table(self, query: str):
         query = query.strip().lower()
@@ -767,6 +865,8 @@ class PolymerAppHomepage(QMainWindow):
         self.populate_history_table(filtered)
 
     def on_history_row_selected(self, row: int, col: int):
+        if col == 4:
+            return  # Ignore selection when clicking the action/delete button
         smiles_item = self.history_table.item(row, 1)
         if smiles_item:
             smiles = smiles_item.text().strip()
@@ -825,6 +925,10 @@ class PolymerAppHomepage(QMainWindow):
 
 
 if __name__ == "__main__":
+    if hasattr(Qt.ApplicationAttribute, "AA_EnableHighDpiScaling"):
+        QApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
+    if hasattr(Qt.ApplicationAttribute, "AA_UseHighDpiPixmaps"):
+        QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
     app = QApplication(sys.argv)
     window = PolymerAppHomepage()
     window.show()
