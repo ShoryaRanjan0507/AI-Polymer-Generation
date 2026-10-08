@@ -15,6 +15,7 @@ except ImportError:
 
 from src.backend.validator import validate_and_process_smiles
 from src.backend.predictor import PropertyPredictor
+from src.backend.explainer import explain_polymer
 
 
 # Curated polymer building blocks & functional motifs across major polymer classes:
@@ -132,6 +133,17 @@ class PolymerGenerator:
             # Weight property closeness (Tg 50%, Tensile 30%, Modulus 20%)
             total_weighted_error = (0.5 * tg_err) + (0.3 * tensile_err) + (0.2 * modulus_err)
 
+            ai_exp = explain_polymer(
+                smiles=processed["canonical_smiles"],
+                tg=pred_results["tg"],
+                density=pred_results["density"],
+                tensile=pred_results["tensile_strength"],
+                modulus=pred_results["elasticity"],
+                sa_score=processed.get("sa_score"),
+                raw_formula=processed.get("molecular_formula"),
+                molecular_weight=processed.get("molecular_weight")
+            )
+
             candidate_data = {
                 **processed,
                 "predictions": pred_results["predictions"],
@@ -140,6 +152,7 @@ class PolymerGenerator:
                 "density": pred_results["density"],
                 "tensile_strength": pred_results["tensile_strength"],
                 "elasticity": pred_results["elasticity"],
+                "ai_explanation": ai_exp,
                 "total_error": total_weighted_error,
                 "is_hit": any(v.get("is_hit", False) for v in pred_results["error_margins"].values()),
                 "message": f"Generated candidate monomer matching target Tg ({target_tg}°C) with SA score {sa}."

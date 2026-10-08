@@ -9,6 +9,7 @@ from src.backend.validator import validate_and_process_smiles, render_mol_2d_byt
 from src.backend.predictor import PropertyPredictor
 from src.backend.generator import PolymerGenerator
 from src.backend.exporter import export_to_csv, export_to_sdf
+from src.backend.explainer import explain_polymer
 
 __all__ = [
     "calculate_sa_score",
@@ -18,4 +19,6 @@ __all__ = [
     "PolymerGenerator",
     "export_to_csv",
     "export_to_sdf",
+    "explain_polymer",
 ]
+

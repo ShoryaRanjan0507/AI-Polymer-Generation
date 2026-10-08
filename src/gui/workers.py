@@ -11,6 +11,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from src.backend.validator import validate_and_process_smiles
 from src.backend.predictor import PropertyPredictor
 from src.backend.generator import PolymerGenerator
+from src.backend.explainer import explain_polymer
 
 
 class PipelineWorker(QThread):
@@ -39,7 +40,7 @@ class PipelineWorker(QThread):
                     self.error_raised.emit("Error: Input SMILES string is empty.")
                     return
 
-                self.progress_updated.emit(40, "Executing RDKit syntax, valence, and sanitization checks...")
+                self.progress_updated.emit(35, "Executing RDKit syntax, valence, and sanitization checks...")
                 processed = validate_and_process_smiles(smiles, is_dark_mode=self.is_dark_mode)
 
                 if not processed["is_valid"]:
@@ -47,8 +48,20 @@ class PipelineWorker(QThread):
                     self.error_raised.emit(err_msg)
                     return
 
-                self.progress_updated.emit(75, "Running Forward QSPR models (Tg, Density, Tensile, Modulus)...")
+                self.progress_updated.emit(65, "Running Forward QSPR models (Tg, Density, Tensile, Modulus)...")
                 preds = PropertyPredictor.predict_properties(processed["canonical_smiles"])
+
+                self.progress_updated.emit(85, "Generating AI Plain-English Polymer interpretation...")
+                explanation = explain_polymer(
+                    smiles=processed["canonical_smiles"],
+                    tg=preds.get("tg"),
+                    density=preds.get("density"),
+                    tensile=preds.get("tensile_strength"),
+                    modulus=preds.get("elasticity"),
+                    sa_score=processed.get("sa_score"),
+                    raw_formula=processed.get("molecular_formula"),
+                    molecular_weight=processed.get("molecular_weight")
+                )
 
                 result = {
                     **processed,
@@ -58,6 +71,7 @@ class PipelineWorker(QThread):
                     "density": preds["density"],
                     "tensile_strength": preds["tensile_strength"],
                     "elasticity": preds["elasticity"],
+                    "ai_explanation": explanation,
                     "message": "Valid monomer structure processed and rendered successfully."
                 }
 

@@ -108,5 +108,28 @@ def test_csv_and_sdf_exporters():
         assert os.path.exists(sdf_path)
 
 
+def test_offline_ai_explainer_known_monomer():
+    from src.backend.explainer import explain_polymer
+    # Test Bisphenol A
+    bpa_smiles = "CC(C)(c1ccc(O)cc1)c2ccc(O)cc2"
+    res = explain_polymer(bpa_smiles, tg=155.0, density=1.20, tensile=75.0, modulus=2.8, sa_score=2.1)
+    assert "Bisphenol A" in res["name"]
+    assert "C₁₅H₁₆O₂" in res["formatted_formula"]
+    assert "Polycarbonate" in res["family"]
+    assert len(res["applications"]) > 0
+    assert "Heat" in res["layman_properties"]["heat"] or "heat" in res["layman_properties"]["heat"].lower()
+
+
+def test_offline_ai_explainer_decomposition_and_wildcard():
+    from src.backend.explainer import explain_polymer
+    # Test a wildcard repeat unit
+    wildcard_smiles = "*CC(*)C(=O)OCC1CCCCC1"
+    res = explain_polymer(wildcard_smiles, tg=95.0, density=1.10, tensile=45.0, modulus=1.8, sa_score=3.0)
+    assert res["formatted_formula"] != "--"
+    assert "Acrylic" in res["family"] or "Methacrylate" in res["name"] or "Acrylate" in res["name"]
+    assert len(res["applications"]) > 0
+
+
 if __name__ == "__main__":
     pytest.main(["-v", __file__])
+

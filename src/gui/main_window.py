@@ -7,7 +7,8 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, QGridLayout, QTabWidget, QLabel, QLineEdit, 
     QPushButton, QTextEdit, QProgressBar, QFrame, 
     QTableWidget, QTableWidgetItem, QHeaderView, QSlider,
-    QMessageBox, QGroupBox, QFileDialog, QComboBox, QSplitter
+    QMessageBox, QGroupBox, QFileDialog, QComboBox, QSplitter,
+    QScrollArea
 )
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont, QFontDatabase, QPixmap, QColor, QIcon, QImage
@@ -18,6 +19,7 @@ from src.database.database_manager import DatabaseManager
 from src.gui.workers import PipelineWorker
 from src.backend.validator import validate_and_process_smiles
 from src.backend.exporter import export_to_csv, export_to_sdf
+from src.backend.explainer import explain_polymer
 
 
 class PolymerAppHomepage(QMainWindow):
@@ -180,9 +182,18 @@ class PolymerAppHomepage(QMainWindow):
 
         workspace_layout.addWidget(self.tabs, stretch=6)
 
-        # Right Column: 2D Visualizer & Dashboard Cards
-        right_panel = self._build_visualization_panel()
-        workspace_layout.addLayout(right_panel, stretch=4)
+        # Right Column: Scrollable 2D Visualizer, Dashboard Cards & AI Plain-English Guide
+        self.right_scroll = QScrollArea()
+        self.right_scroll.setWidgetResizable(True)
+        self.right_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.right_scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+
+        right_container = QWidget()
+        right_panel_layout = self._build_visualization_panel()
+        right_container.setLayout(right_panel_layout)
+        self.right_scroll.setWidget(right_container)
+
+        workspace_layout.addWidget(self.right_scroll, stretch=4)
 
         main_layout.addLayout(workspace_layout)
 
@@ -477,6 +488,26 @@ class PolymerAppHomepage(QMainWindow):
 
         panel.addWidget(self.dashboard_group)
 
+        # AI Plain-English Polymer Guide
+        self.ai_guide_group = QGroupBox("AI Plain-English Polymer Guide")
+        ai_layout = QVBoxLayout(self.ai_guide_group)
+        ai_layout.setContentsMargins(8, 8, 8, 8)
+        ai_layout.setSpacing(6)
+
+        self.lbl_ai_identity = QLabel()
+        self.lbl_ai_identity.setWordWrap(True)
+        ai_layout.addWidget(self.lbl_ai_identity)
+
+        self.lbl_ai_role = QLabel()
+        self.lbl_ai_role.setWordWrap(True)
+        ai_layout.addWidget(self.lbl_ai_role)
+
+        self.lbl_ai_properties = QLabel()
+        self.lbl_ai_properties.setWordWrap(True)
+        ai_layout.addWidget(self.lbl_ai_properties)
+
+        panel.addWidget(self.ai_guide_group)
+
         # Action Button: Save to DB
         self.btn_save_db = QPushButton("Save Record to SQLite Database")
         self.btn_save_db.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -604,6 +635,15 @@ class PolymerAppHomepage(QMainWindow):
         self.lbl_modulus.setText(f"<div style='text-align: center;'><span style='font-size: 11px; color: {title_color};'>Elastic Modulus</span><br/><span style='font-size: 16px; color: {val_color}; font-weight: bold;'>--</span></div>")
         self.lbl_modulus.setStyleSheet(card_style)
 
+        self.lbl_ai_identity.setText(
+            f"<div style='text-align: center; color: {title_color}; font-size: 11px; padding: 6px;'>"
+            "<i>No polymer active. Run Forward Prediction or Inverse AI Design to view plain-English identity, formula, and daily applications.</i>"
+            "</div>"
+        )
+        self.lbl_ai_identity.setStyleSheet(card_style)
+        self.lbl_ai_role.setVisible(False)
+        self.lbl_ai_properties.setVisible(False)
+
     def update_result_ui(self, result: dict):
         self.current_result = result
         sa = result.get("sa_score", "--")
@@ -648,6 +688,95 @@ class PolymerAppHomepage(QMainWindow):
         else:
             self.image_viewport.setText(f"Canonical SMILES:\n{result.get('canonical_smiles')}")
             self.image_viewport.setStyleSheet(f"border: 2px solid #10b981; background: {bg_color}; font-weight: bold; color: #10b981; border-radius: 6px;")
+
+        # AI Plain-English Interpretation
+        ai_exp = result.get("ai_explanation")
+        if not ai_exp:
+            ai_exp = explain_polymer(
+                smiles=result.get("canonical_smiles") or result.get("raw_smiles", ""),
+                tg=result.get("tg") if isinstance(result.get("tg"), (int, float)) else None,
+                density=result.get("density") if isinstance(result.get("density"), (int, float)) else None,
+                tensile=result.get("tensile_strength") if isinstance(result.get("tensile_strength"), (int, float)) else None,
+                modulus=result.get("elasticity") if isinstance(result.get("elasticity"), (int, float)) else None,
+                sa_score=result.get("sa_score") if isinstance(result.get("sa_score"), (int, float)) else None,
+                raw_formula=result.get("molecular_formula"),
+                molecular_weight=result.get("molecular_weight")
+            )
+            result["ai_explanation"] = ai_exp
+
+        # Format Identity Box
+        name_title = ai_exp.get("name", "Polymer Monomer")
+        trade_name = ai_exp.get("trade_name", "")
+        family = ai_exp.get("family", "Engineering Plastic")
+        formatted_formula = ai_exp.get("formatted_formula", result.get("molecular_formula", "--"))
+        mw = ai_exp.get("molecular_weight", result.get("molecular_weight", "--"))
+        element_breakdown = ai_exp.get("element_breakdown", "")
+
+        accent_color = "#38bdf8" if self.is_dark_mode else "#0284c7"
+        text_primary = "#f8fafc" if self.is_dark_mode else "#0f172a"
+        text_secondary = "#94a3b8" if self.is_dark_mode else "#475569"
+        badge_bg = "#1e293b" if self.is_dark_mode else "#e0f2fe"
+        badge_color = "#38bdf8" if self.is_dark_mode else "#0369a1"
+        quote_bg = "#070b14" if self.is_dark_mode else "#f8fafc"
+        quote_border = "#0284c7"
+
+        identity_html = f"""
+        <div style='padding: 2px 4px;'>
+            <div style='margin-bottom: 4px;'>
+                <span style='font-size: 13px; font-weight: bold; color: {accent_color};'>{name_title}</span>
+                <span style='font-size: 10px; background-color: {badge_bg}; color: {badge_color}; border: 1px solid {badge_color}; padding: 1px 5px; border-radius: 4px; margin-left: 6px;'>{trade_name}</span>
+            </div>
+            <div style='font-size: 11px; color: {text_primary}; margin-bottom: 2px;'>
+                <b>Formula:</b> <span style='font-size: 12px; font-weight: bold; color: {accent_color};'>{formatted_formula}</span> &bull; <b>MW:</b> {mw} g/mol
+            </div>
+            <div style='font-size: 10px; color: {text_secondary}; margin-bottom: 4px;'>
+                {element_breakdown}
+            </div>
+            <div style='font-size: 10.5px; color: {text_secondary};'>
+                <b>Class:</b> <span style='color: {text_primary};'>{family}</span>
+            </div>
+        </div>
+        """
+        self.lbl_ai_identity.setText(identity_html)
+        self.lbl_ai_identity.setStyleSheet(card_style)
+        self.lbl_ai_identity.setVisible(True)
+
+        # Everyday Role & Real-world Analogy
+        role_text = ai_exp.get("everyday_role", "")
+        apps = ai_exp.get("applications", [])
+        apps_html = "".join([f"<li style='margin-bottom: 2px;'>{app}</li>" for app in apps[:3]])
+
+        role_html = f"""
+        <div style='padding: 4px 6px; background: {quote_bg}; border-left: 3px solid {quote_border}; border-radius: 4px;'>
+            <div style='font-size: 11px; font-weight: bold; color: {accent_color}; margin-bottom: 3px;'>What is this in Everyday Life?</div>
+            <div style='font-size: 10.5px; color: {text_primary}; line-height: 1.35; margin-bottom: 5px;'>{role_text}</div>
+            <div style='font-size: 10px; font-weight: bold; color: {text_secondary}; margin-bottom: 2px;'>Common Everyday Products:</div>
+            <ul style='font-size: 10px; color: {text_primary}; margin: 0; padding-left: 16px;'>
+                {apps_html}
+            </ul>
+        </div>
+        """
+        self.lbl_ai_role.setText(role_html)
+        self.lbl_ai_role.setStyleSheet(card_style)
+        self.lbl_ai_role.setVisible(True)
+
+        # Plain-English Physical Properties
+        layman_p = ai_exp.get("layman_properties", {})
+        heat_desc = layman_p.get("heat", "")
+        mech_desc = layman_p.get("mechanical", "")
+        feas_desc = layman_p.get("feasibility", "")
+
+        props_html = f"""
+        <div style='padding: 4px 6px;'>
+            <div style='font-size: 11px; font-weight: bold; color: {accent_color}; margin-bottom: 4px;'>Plain-English Property Breakdown</div>
+            <div style='font-size: 10px; color: {text_primary}; margin-bottom: 3px;'><b>Heat:</b> {heat_desc}</div>
+            <div style='font-size: 10px; color: {text_primary}; margin-bottom: 3px;'><b>Feel & Rigidity:</b> {mech_desc}</div>
+            <div style='font-size: 10px; color: {text_primary};'><b>Manufacturing:</b> {feas_desc}</div>
+        </div>
+        """
+        self.lbl_ai_properties.setText(props_html)
+        self.lbl_ai_properties.setStyleSheet(card_style)
+        self.lbl_ai_properties.setVisible(True)
 
         # Update Molecular Descriptors in Forward Tab
         if "molecular_formula" in result:
