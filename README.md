@@ -488,15 +488,13 @@ The repository currently specifies PyQt6, RDKit, and pytest as dependencies.
 
 The exact execution command depends on the entry-point provided by the source code.
 
-After installing the dependencies, the appropriate Python file inside the `src` directory can be executed according to the project's implementation.
+After installing the dependencies, the main_window.py Python file inside the `src` directory can be executed according to the project's implementation.
 
 For example:
 
 ```bash
-python <entry_file>.py
+python main_window.py
 ```
-
-Replace `<entry_file>.py` with the actual application entry point.
 
 ---
 
@@ -660,13 +658,11 @@ This project was developed as a collaborative group project.
 
 ### Team Members
 
-* **Shorya Ranjan** — Project Repository / Development
-* **[Teammate Name]** — Development / AI & Model
-* **[Teammate Name]** — Development / Testing
+* **Shorya Ranjan** — Project Repository & Backend Development
+* **Shivansh Pandey** — AI & Model Development
+* **Awneesh Kumar** — Frontend Development, Database & Testing
 * **Palak Mitruka** — Documentation & Project Support
-* **[Teammate Name]** — [Role]
-
-> Replace the placeholder names and roles with the actual team members and responsibilities before committing this README.
+* **Gauri Srivastava** — Initial Research
 
 ---
 
@@ -722,11 +718,3 @@ Future development can expand the system with more advanced generative models, a
 GitHub Repository:
 
 https://github.com/ShoryaRanjan0507/AI-Polymer-Generation
-
----
-
-## License
-
-License information should be added here according to the license selected for the project.
-
-If no license has been selected yet, the project maintainers should decide on an appropriate open-source license before publishing the final version.
