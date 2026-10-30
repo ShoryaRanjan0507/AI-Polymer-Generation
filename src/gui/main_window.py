@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QTextEdit, QProgressBar, QFrame, 
     QTableWidget, QTableWidgetItem, QHeaderView, QSlider,
     QMessageBox, QGroupBox, QFileDialog, QComboBox, QSplitter,
-    QScrollArea
+    QScrollArea, QListView
 )
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont, QFontDatabase, QPixmap, QColor, QIcon, QImage
@@ -64,11 +64,67 @@ class PolymerAppHomepage(QMainWindow):
             QGroupBox { border: 1px solid #1e293b; border-radius: 8px; margin-top: 10px; font-weight: bold; color: #cbd5e1; padding-top: 14px; background-color: #0f172a; }
             QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 10px; padding: 0 4px; color: #38bdf8; font-size: 10pt; font-weight: bold; background-color: transparent; }
             
-            QLineEdit, QComboBox { background-color: #020617; border: 1px solid #1e293b; color: #f8fafc; padding: 8px 12px; border-radius: 6px; font-size: 10pt; selection-background-color: #0284c7; }
-            QLineEdit:hover, QComboBox:hover { border-color: #334155; }
-            QLineEdit:focus, QComboBox:focus { border: 1px solid #38bdf8; background-color: #090d16; }
-            QComboBox QAbstractItemView { background-color: #0f172a; color: #f8fafc; font-size: 10pt; selection-background-color: #0284c7; border: 1px solid #1e293b; border-radius: 6px; padding: 4px; outline: 0px; }
-            QComboBox::item { font-size: 10pt; min-height: 24px; }
+            QLineEdit { background-color: #020617; border: 1px solid #1e293b; color: #f8fafc; padding: 8px 12px; border-radius: 6px; font-size: 10pt; selection-background-color: #0284c7; }
+            QLineEdit:hover { border-color: #334155; }
+            QLineEdit:focus { border: 1px solid #38bdf8; background-color: #090d16; }
+            
+            QComboBox {
+                background-color: #090d16;
+                border: 1px solid #1e293b;
+                border-radius: 8px;
+                color: #f8fafc;
+                padding: 6px 30px 6px 14px;
+                font-size: 10pt;
+                font-weight: 600;
+                min-width: 60px;
+            }
+            QComboBox:hover {
+                border-color: #38bdf8;
+                background-color: #0f172a;
+            }
+            QComboBox:on {
+                border-color: #38bdf8;
+                border-bottom-left-radius: 0px;
+                border-bottom-right-radius: 0px;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 26px;
+                border: none;
+                background: transparent;
+            }
+            QComboBox::down-arrow {
+                image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+                width: 12px;
+                height: 12px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #090d16;
+                color: #f8fafc;
+                font-size: 10pt;
+                border: 1px solid #1e293b;
+                border-radius: 8px;
+                padding: 4px;
+                outline: 0px;
+                selection-background-color: #0284c7;
+                selection-color: #ffffff;
+            }
+            QComboBox QAbstractItemView::item {
+                min-height: 32px;
+                padding: 4px 12px;
+                border-radius: 6px;
+                color: #f8fafc;
+            }
+            QComboBox QAbstractItemView::item:hover {
+                background-color: #1e293b;
+                color: #38bdf8;
+            }
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #0284c7;
+                color: #ffffff;
+                font-weight: bold;
+            }
             
             QLabel { color: #e2e8f0; }
             
@@ -85,6 +141,12 @@ class PolymerAppHomepage(QMainWindow):
             QMessageBox QLabel { color: #f8fafc; }
             QMessageBox QPushButton { background-color: #0284c7; color: #ffffff; border-radius: 6px; padding: 6px 18px; font-weight: bold; min-width: 65px; border: none; }
             QMessageBox QPushButton:hover { background-color: #0369a1; }
+            
+            QScrollArea, QScrollArea > QWidget > QWidget { background-color: #0b0f19; border: none; }
+            QScrollBar:vertical { background: #0b0f19; width: 8px; margin: 0px; border-radius: 4px; }
+            QScrollBar::handle:vertical { background: #334155; min-height: 20px; border-radius: 4px; }
+            QScrollBar::handle:vertical:hover { background: #475569; }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
         """
 
     def get_light_stylesheet(self) -> str:
@@ -100,11 +162,67 @@ class PolymerAppHomepage(QMainWindow):
             QGroupBox { border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 10px; font-weight: bold; color: #334155; padding-top: 14px; background-color: #ffffff; }
             QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 10px; padding: 0 4px; color: #0284c7; font-size: 10pt; font-weight: bold; background-color: transparent; }
             
-            QLineEdit, QComboBox { background-color: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 8px 12px; border-radius: 6px; font-size: 10pt; selection-background-color: #0284c7; }
-            QLineEdit:hover, QComboBox:hover { border-color: #94a3b8; }
-            QLineEdit:focus, QComboBox:focus { border: 1px solid #0284c7; }
-            QComboBox QAbstractItemView { background-color: #ffffff; color: #0f172a; font-size: 10pt; selection-background-color: #0284c7; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px; outline: 0px; }
-            QComboBox::item { font-size: 10pt; min-height: 24px; }
+            QLineEdit { background-color: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 8px 12px; border-radius: 6px; font-size: 10pt; selection-background-color: #0284c7; }
+            QLineEdit:hover { border-color: #94a3b8; }
+            QLineEdit:focus { border: 1px solid #0284c7; }
+            
+            QComboBox {
+                background-color: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                color: #0f172a;
+                padding: 6px 30px 6px 14px;
+                font-size: 10pt;
+                font-weight: 600;
+                min-width: 60px;
+            }
+            QComboBox:hover {
+                border-color: #0284c7;
+                background-color: #f8fafc;
+            }
+            QComboBox:on {
+                border-color: #0284c7;
+                border-bottom-left-radius: 0px;
+                border-bottom-right-radius: 0px;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 26px;
+                border: none;
+                background: transparent;
+            }
+            QComboBox::down-arrow {
+                image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230284c7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+                width: 12px;
+                height: 12px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #ffffff;
+                color: #0f172a;
+                font-size: 10pt;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 4px;
+                outline: 0px;
+                selection-background-color: #e0f2fe;
+                selection-color: #0284c7;
+            }
+            QComboBox QAbstractItemView::item {
+                min-height: 32px;
+                padding: 4px 12px;
+                border-radius: 6px;
+                color: #0f172a;
+            }
+            QComboBox QAbstractItemView::item:hover {
+                background-color: #f1f5f9;
+                color: #0284c7;
+            }
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #e0f2fe;
+                color: #0284c7;
+                font-weight: bold;
+            }
             
             QLabel { color: #1e293b; }
             
@@ -121,6 +239,12 @@ class PolymerAppHomepage(QMainWindow):
             QMessageBox QLabel { color: #0f172a; }
             QMessageBox QPushButton { background-color: #0284c7; color: #ffffff; border-radius: 6px; padding: 6px 18px; font-weight: 600; min-width: 65px; border: none; }
             QMessageBox QPushButton:hover { background-color: #0369a1; }
+            
+            QScrollArea, QScrollArea > QWidget > QWidget { background-color: #f8fafc; border: none; }
+            QScrollBar:vertical { background: #f8fafc; width: 8px; margin: 0px; border-radius: 4px; }
+            QScrollBar::handle:vertical { background: #cbd5e1; min-height: 20px; border-radius: 4px; }
+            QScrollBar::handle:vertical:hover { background: #94a3b8; }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
         """
 
     def _init_ui(self):
@@ -186,7 +310,6 @@ class PolymerAppHomepage(QMainWindow):
         self.right_scroll = QScrollArea()
         self.right_scroll.setWidgetResizable(True)
         self.right_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self.right_scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
 
         right_container = QWidget()
         right_panel_layout = self._build_visualization_panel()
@@ -346,6 +469,8 @@ class PolymerAppHomepage(QMainWindow):
         control_row.addSpacing(16)
         control_row.addWidget(QLabel("Batch Size:"))
         self.combo_batch_size = QComboBox()
+        self.combo_batch_size.setView(QListView())
+        self.combo_batch_size.setCursor(Qt.CursorShape.PointingHandCursor)
         combo_font = QFont("Segoe UI", 10)
         self.combo_batch_size.setFont(combo_font)
         if self.combo_batch_size.view():
@@ -721,19 +846,19 @@ class PolymerAppHomepage(QMainWindow):
         quote_border = "#0284c7"
 
         identity_html = f"""
-        <div style='padding: 2px 4px;'>
-            <div style='margin-bottom: 4px;'>
-                <span style='font-size: 13px; font-weight: bold; color: {accent_color};'>{name_title}</span>
-                <span style='font-size: 10px; background-color: {badge_bg}; color: {badge_color}; border: 1px solid {badge_color}; padding: 1px 5px; border-radius: 4px; margin-left: 6px;'>{trade_name}</span>
+        <div style='padding: 4px 6px;'>
+            <div style='margin-bottom: 6px;'>
+                <span style='font-size: 15px; font-weight: bold; color: {accent_color};'>{name_title}</span>
+                <span style='font-size: 11px; background-color: {badge_bg}; color: {badge_color}; border: 1px solid {badge_color}; padding: 2px 7px; border-radius: 4px; margin-left: 8px;'>{trade_name}</span>
             </div>
-            <div style='font-size: 11px; color: {text_primary}; margin-bottom: 2px;'>
-                <b>Formula:</b> <span style='font-size: 12px; font-weight: bold; color: {accent_color};'>{formatted_formula}</span> &bull; <b>MW:</b> {mw} g/mol
+            <div style='font-size: 13px; color: {text_primary}; margin-bottom: 4px;'>
+                <b>Formula:</b> <span style='font-size: 14px; font-weight: bold; color: {accent_color};'>{formatted_formula}</span> &bull; <b>MW:</b> {mw} g/mol
             </div>
-            <div style='font-size: 10px; color: {text_secondary}; margin-bottom: 4px;'>
+            <div style='font-size: 12px; color: {text_secondary}; margin-bottom: 6px;'>
                 {element_breakdown}
             </div>
-            <div style='font-size: 10.5px; color: {text_secondary};'>
-                <b>Class:</b> <span style='color: {text_primary};'>{family}</span>
+            <div style='font-size: 13px; color: {text_secondary};'>
+                <b>Class:</b> <span style='color: {text_primary}; font-weight: 600;'>{family}</span>
             </div>
         </div>
         """
@@ -744,14 +869,14 @@ class PolymerAppHomepage(QMainWindow):
         # Everyday Role & Real-world Analogy
         role_text = ai_exp.get("everyday_role", "")
         apps = ai_exp.get("applications", [])
-        apps_html = "".join([f"<li style='margin-bottom: 2px;'>{app}</li>" for app in apps[:3]])
+        apps_html = "".join([f"<li style='margin-bottom: 3px;'>{app}</li>" for app in apps[:3]])
 
         role_html = f"""
-        <div style='padding: 4px 6px; background: {quote_bg}; border-left: 3px solid {quote_border}; border-radius: 4px;'>
-            <div style='font-size: 11px; font-weight: bold; color: {accent_color}; margin-bottom: 3px;'>What is this in Everyday Life?</div>
-            <div style='font-size: 10.5px; color: {text_primary}; line-height: 1.35; margin-bottom: 5px;'>{role_text}</div>
-            <div style='font-size: 10px; font-weight: bold; color: {text_secondary}; margin-bottom: 2px;'>Common Everyday Products:</div>
-            <ul style='font-size: 10px; color: {text_primary}; margin: 0; padding-left: 16px;'>
+        <div style='padding: 6px 8px; background: {quote_bg}; border-left: 3px solid {quote_border}; border-radius: 4px;'>
+            <div style='font-size: 13.5px; font-weight: bold; color: {accent_color}; margin-bottom: 4px;'>What is this in Everyday Life?</div>
+            <div style='font-size: 13px; color: {text_primary}; line-height: 1.4; margin-bottom: 6px;'>{role_text}</div>
+            <div style='font-size: 12.5px; font-weight: bold; color: {text_secondary}; margin-bottom: 3px;'>Common Everyday Products:</div>
+            <ul style='font-size: 12.5px; color: {text_primary}; margin: 0; padding-left: 18px;'>
                 {apps_html}
             </ul>
         </div>
@@ -767,11 +892,11 @@ class PolymerAppHomepage(QMainWindow):
         feas_desc = layman_p.get("feasibility", "")
 
         props_html = f"""
-        <div style='padding: 4px 6px;'>
-            <div style='font-size: 11px; font-weight: bold; color: {accent_color}; margin-bottom: 4px;'>Plain-English Property Breakdown</div>
-            <div style='font-size: 10px; color: {text_primary}; margin-bottom: 3px;'><b>Heat:</b> {heat_desc}</div>
-            <div style='font-size: 10px; color: {text_primary}; margin-bottom: 3px;'><b>Feel & Rigidity:</b> {mech_desc}</div>
-            <div style='font-size: 10px; color: {text_primary};'><b>Manufacturing:</b> {feas_desc}</div>
+        <div style='padding: 6px 8px;'>
+            <div style='font-size: 13.5px; font-weight: bold; color: {accent_color}; margin-bottom: 6px;'>Plain-English Property Breakdown</div>
+            <div style='font-size: 13px; color: {text_primary}; margin-bottom: 4px; line-height: 1.35;'><b>Heat:</b> {heat_desc}</div>
+            <div style='font-size: 13px; color: {text_primary}; margin-bottom: 4px; line-height: 1.35;'><b>Feel & Rigidity:</b> {mech_desc}</div>
+            <div style='font-size: 13px; color: {text_primary}; line-height: 1.35;'><b>Manufacturing:</b> {feas_desc}</div>
         </div>
         """
         self.lbl_ai_properties.setText(props_html)
